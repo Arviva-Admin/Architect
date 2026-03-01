@@ -1,0 +1,123 @@
+{
+  "project_name": "Autonomous Cognitive Control Fabric",
+  "theme_strategy": {
+    "mode": "dark",
+    "archetype": "Electric & Neon",
+    "emotional_tone": "Precision, Control, Safety, Autonomy",
+    "description": "A mission-critical interface inspired by NASA control rooms and cybersecurity dashboards. Deep blacks, high-contrast neons, and dense data layouts."
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Manrope",
+      "weights": ["600", "700", "800"],
+      "usage": "Section headers, Modal titles, KPI values",
+      "tracking": "tracking-tight"
+    },
+    "body": {
+      "font_family": "Inter",
+      "weights": ["400", "500"],
+      "usage": "General UI text, descriptions, tooltips"
+    },
+    "code": {
+      "font_family": "JetBrains Mono",
+      "weights": ["400", "500"],
+      "usage": "Data streams, Logs, Code snippets, JSON viewers"
+    }
+  },
+  "colors": {
+    "palette": {
+      "background": {
+        "default": "#030712",
+        "paper": "#0b1221",
+        "overlay": "#0f172a"
+      },
+      "primary": {
+        "DEFAULT": "#06b6d4",
+        "foreground": "#000000",
+        "glow": "0 0 20px rgba(6, 182, 212, 0.5)"
+      },
+      "secondary": {
+        "DEFAULT": "#3b82f6",
+        "foreground": "#ffffff"
+      },
+      "destructive": {
+        "DEFAULT": "#ef4444",
+        "foreground": "#ffffff",
+        "glow": "0 0 20px rgba(239, 68, 68, 0.5)"
+      },
+      "accent": {
+        "DEFAULT": "#10b981",
+        "foreground": "#000000"
+      },
+      "border": "rgba(148, 163, 184, 0.1)"
+    },
+    "semantic": {
+      "cognitive_engine": "#06b6d4",
+      "control_kernel": "#ef4444",
+      "safe_state": "#10b981",
+      "warning": "#f59e0b",
+      "critical": "#dc2626"
+    }
+  },
+  "layout_system": {
+    "grid_type": "Bento Grid Mode B (High Density)",
+    "spacing_scale": "Tailwind Standard (multiplied by 1.5x for sections)",
+    "container_padding": "p-6 md:p-8",
+    "border_radius": "rounded-none md:rounded-sm"
+  },
+  "components": {
+    "Card": {
+      "style": "Glassmorphism with tactical borders",
+      "classes": "bg-background/60 backdrop-blur-xl border border-border/40 shadow-lg hover:border-primary/50 transition-colors duration-300",
+      "instructions": "Use 'Tracing Beam' effect for active agents."
+    },
+    "Button": {
+      "style": "Tactical/Sharp",
+      "classes": "rounded-sm uppercase tracking-wider font-bold text-xs",
+      "variants": {
+        "default": "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_0_15px_rgba(6,182,212,0.4)]",
+        "destructive": "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)]",
+        "outline": "border border-primary/50 text-primary hover:bg-primary/10"
+      }
+    },
+    "Graph": {
+      "library": "react-force-graph-3d",
+      "settings": {
+        "backgroundColor": "#00000000",
+        "nodeColor": "auto",
+        "linkColor": "#ffffff20"
+      }
+    }
+  },
+  "visual_enhancers": {
+    "borders": "1px solid rgba(255,255,255,0.1)",
+    "shadows": "0 10px 30px -10px rgba(0,0,0,0.5)",
+    "gradients": "No full-screen gradients. Use subtle radial-gradients for spotlights.",
+    "textures": "Subtle scanlines or noise overlay on backgrounds."
+  },
+  "image_assets": {
+    "backgrounds": [
+      {
+        "url": "https://images.unsplash.com/photo-1750969185331-e03829f72c7d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMG5ldXJhbCUyMG5ldHdvcmslMjBkYXJrJTIwYmx1ZSUyMGRpZ2l0YWwlMjBhcnR8ZW58MHx8fHwxNzcyMzc0NDUxfDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Neural Network Background",
+        "category": "hero_bg"
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Install 'react-force-graph-3d' for the main visualization.",
+    "Install 'mermaid' for documentation diagrams.",
+    "Use 'JetBrains Mono' for all data, logs, and code views.",
+    "Ensure 'Control Kernel' sections use Red/Warning colors, while 'Cognitive Engine' uses Cyan/Blue.",
+    "Implement the Voice Interface as a floating, always-accessible panel or footer.",
+    "The Dashboard must be 'High Density' - minimize whitespace between widgets.",
+    "Use 'sonner' for system notifications (e.g., 'Rollback Initiated').",
+    "Autonomy Level (A0-A4) should be a prominent slider or distinct status indicator."
+  ],
+  "universal_guidelines": [
+    "Do not use generic centered layouts. Use grid-based, dashboard-style layouts.",
+    "Ensure all interactive elements have hover states (glow, color shift).",
+    "Use 'framer-motion' for smooth transitions, especially for graph nodes and modal appearances.",
+    "Add 'data-testid' to all interactive elements."
+  ]
+}
