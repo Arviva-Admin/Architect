@@ -22,6 +22,10 @@ from core.shadow_world import shadow_world
 from core.rollback_manager import rollback_manager
 from core.project_indexer import project_indexer
 
+# Import voice integrations
+from integrations.voice_stt import whisper_stt
+from integrations.voice_tts import piper_tts
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
