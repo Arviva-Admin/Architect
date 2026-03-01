@@ -1,0 +1,35 @@
+services:
+  mongo-dev:
+    image: mongo:7
+    ports:
+      - "${DEV_BIND_IP:-127.0.0.1}:27017:27017"
+
+  backend-dev:
+    build:
+      context: "./backend"
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "${DEV_BIND_IP:-127.0.0.1}:8001:8001"
+    depends_on:
+      - mongo-dev
+    deploy:
+      resources:
+        limits:
+          memory: "35G"
+
+  frontend-dev:
+    build:
+      context: "./frontend"
+    environment:
+      - VITE_API_BASE_URL=http://127.0.0.1:8001
+      - VITE_WS_BASE_URL=ws://127.0.0.1:8001
+    ports:
+      - "${DEV_BIND_IP:-127.0.0.1}:3000:3000"
+    depends_on:
+      - backend-dev
+
+  hub-dev:
+    image: nginx:alpine
+    ports:
+      - "${DEV_BIND_IP:-127.0.0.1}:3001:80"
