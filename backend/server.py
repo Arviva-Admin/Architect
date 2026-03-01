@@ -298,6 +298,203 @@ async def update_project(project_id: str, updates: Dict[str, Any]):
     result = project_indexer.update_project(project_id, updates)
     return result
 
+@api_router.post("/projects/{project_id}/toggle")
+async def toggle_project_status(project_id: str):
+    """Enable/disable project module"""
+    project = project_indexer.get_project(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    new_status = "inactive" if project["status"] == "active" else "active"
+    result = project_indexer.update_project(project_id, {"status": new_status})
+    
+    return {
+        "success": True,
+        "project_id": project_id,
+        "old_status": project["status"],
+        "new_status": new_status,
+        "message": f"Project {'deactivated' if new_status == 'inactive' else 'activated'}"
+    }
+
+@api_router.get("/projects/{project_id}/dependencies")
+async def get_project_dependencies(project_id: str):
+    """Get project dependencies"""
+    project = project_indexer.get_project(project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Simulated dependency info - in production, analyze actual dependencies
+    return {
+        "project_id": project_id,
+        "dependencies": [
+            {"id": "dep1", "name": "Shared Library", "type": "library", "critical": True},
+            {"id": "dep2", "name": "API Gateway", "type": "service", "critical": False}
+        ],
+        "dependent_projects": []
+    }
+
+# ============= Voice Integration Endpoints =============
+
+class VoiceTranscribeRequest(BaseModel):
+    audio_base64: str
+    language: Optional[str] = None
+
+class VoiceSynthesizeRequest(BaseModel):
+    text: str
+    voice: Optional[str] = None
+
+@api_router.post("/voice/transcribe")
+async def transcribe_voice(request: VoiceTranscribeRequest):
+    """Transcribe audio to text using Whisper STT"""
+    import base64
+    try:
+        audio_data = base64.b64decode(request.audio_base64)
+        result = whisper_stt.transcribe_audio(audio_data, request.language)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/voice/synthesize")
+async def synthesize_voice(request: VoiceSynthesizeRequest):
+    """Synthesize text to speech using Piper TTS"""
+    try:
+        result = piper_tts.synthesize_speech(request.text, request.voice)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/voice/status")
+async def get_voice_status():
+    """Get voice integration status"""
+    return {
+        "stt": whisper_stt.get_status(),
+        "tts": piper_tts.get_status()
+    }
+
+@api_router.get("/voice/voices")
+async def list_available_voices():
+    """List available TTS voices"""
+    return {
+        "voices": piper_tts.get_available_voices()
+    }
+
+@api_router.post("/voice/command")
+async def process_voice_command(request: VoiceTranscribeRequest):
+    """Process voice command - transcribe and execute"""
+    import base64
+    try:
+        # Transcribe
+        audio_data = base64.b64decode(request.audio_base64)
+        transcription = whisper_stt.transcribe_audio(audio_data, request.language)
+        
+        if not transcription.get("success"):
+            return transcription
+        
+        command_text = transcription.get("text", "").lower()
+        
+        # Parse command and execute
+        response_text = "Command received but not implemented in reference version"
+        
+        # Synthesize response
+        synthesis = piper_tts.synthesize_speech(response_text)
+        
+        return {
+            "success": True,
+            "transcription": transcription,
+            "command": command_text,
+            "response": response_text,
+            "audio": synthesis
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============= Safety & Metrics Endpoints =============
+
+@api_router.get("/safety/metrics")
+async def get_safety_metrics():
+    """Get current system safety metrics"""
+    cognitive_status = cognitive_engine.get_status()
+    
+    # Simulated metrics - in production, read from actual system
+    return {
+        "cpu_usage_percent": 45,
+        "memory_usage_gb": 12.5,
+        "memory_limit_gb": 35,
+        "response_time_ms": cognitive_status.get("avg_response_time_ms", 0),
+        "response_time_sla": 2000,
+        "task_failure_rate": 0.02,
+        "meets_sla": cognitive_status.get("meets_sla", True),
+        "safety_status": "nominal"
+    }
+
+@api_router.post("/safety/check-thresholds")
+async def check_safety_thresholds():
+    """Check if safety thresholds are breached"""
+    metrics = await get_safety_metrics()
+    
+    breaches = []
+    
+    if metrics["memory_usage_gb"] > 30:  # 85% of limit
+        breaches.append({
+            "type": "memory",
+            "severity": "warning",
+            "message": f"Memory usage high: {metrics['memory_usage_gb']}GB / {metrics['memory_limit_gb']}GB"
+        })
+    
+    if metrics["response_time_ms"] > 2000:
+        breaches.append({
+            "type": "performance",
+            "severity": "critical",
+            "message": f"Response time exceeds SLA: {metrics['response_time_ms']}ms > 2000ms"
+        })
+    
+    if metrics["task_failure_rate"] > 0.05:
+        breaches.append({
+            "type": "reliability",
+            "severity": "warning",
+            "message": f"Task failure rate high: {metrics['task_failure_rate']*100:.1f}%"
+        })
+    
+    should_rollback = any(b["severity"] == "critical" for b in breaches)
+    
+    return {
+        "safe": len(breaches) == 0,
+        "breaches": breaches,
+        "recommend_rollback": should_rollback,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.post("/safety/auto-rollback")
+async def trigger_auto_rollback():
+    """Trigger automatic rollback due to safety breach"""
+    # Check thresholds
+    safety_check = await check_safety_thresholds()
+    
+    if not safety_check["recommend_rollback"]:
+        return {
+            "success": False,
+            "message": "No rollback needed - system within safe parameters"
+        }
+    
+    # Get most recent stable snapshot
+    snapshots = rollback_manager.list_snapshots()
+    stable_snapshots = [s for s in snapshots if "stable" in s.get("tags", [])]
+    
+    if not stable_snapshots:
+        return {
+            "success": False,
+            "message": "No stable snapshot available for rollback"
+        }
+    
+    target_snapshot = stable_snapshots[0]
+    result = rollback_manager.rollback_to_snapshot(target_snapshot["id"])
+    
+    return {
+        **result,
+        "reason": "Automatic rollback triggered by safety threshold breach",
+        "breaches": safety_check["breaches"]
+    }
+
 # ============= Documentation Endpoints =============
 
 @api_router.get("/documentation/architecture")
