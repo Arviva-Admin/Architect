@@ -1,0 +1,26 @@
+services:
+  mongo:
+    image: mongo:7
+
+  backend:
+    build:
+      context: "./backend"
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - mongo
+    deploy:
+      resources:
+        limits:
+          memory: "35G"
+
+  frontend-prod:
+    build:
+      context: "./frontend"
+    environment:
+      - VITE_API_BASE_URL=http://backend:8001
+      - VITE_WS_BASE_URL=ws://backend:8001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
