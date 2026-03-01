@@ -8,6 +8,8 @@ import SystemMetrics from '../components/SystemMetrics';
 import AutonomyPanel from '../components/AutonomyPanel';
 import ProjectRegistry from '../components/ProjectRegistry';
 import QuickActions from '../components/QuickActions';
+import VoiceInterface from '../components/VoiceInterface';
+import NotificationArea from '../components/NotificationArea';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
