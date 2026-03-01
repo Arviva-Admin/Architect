@@ -1,0 +1,665 @@
+{
+  "title": "Autonomous Cognitive Control Fabric - API Documentation",
+  "version": "1.0.0",
+  "base_url": "/api",
+  "last_updated": "2026-03-01",
+  "description": "Complete API reference for the ACCF meta-layer control system",
+  "authentication": {
+    "type": "none",
+    "note": "In production, implement JWT or API key authentication"
+  },
+  "endpoints": {
+    "health": {
+      "GET /health": {
+        "description": "System health check",
+        "parameters": {},
+        "response": {
+          "status": "string",
+          "components": {
+            "control_kernel": "string",
+            "cognitive_engine": "string",
+            "state_graph": "string",
+            "shadow_world": "string",
+            "rollback_manager": "string"
+          }
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/health"
+      }
+    },
+    "control_kernel": {
+      "GET /control-kernel/status": {
+        "description": "Get Control Kernel status and current autonomy level",
+        "parameters": {},
+        "response": {
+          "version": "string",
+          "status": "string",
+          "autonomy_level": "string (A0-A4)",
+          "safety_policies": "object",
+          "execution_log_size": "number"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/control-kernel/status"
+      },
+      "POST /control-kernel/autonomy-level": {
+        "description": "Set autonomy level (A0-A4)",
+        "parameters": {
+          "level": "string (required) - One of: A0, A1, A2, A3, A4"
+        },
+        "request_body": {
+          "level": "A3"
+        },
+        "response": {
+          "success": "boolean",
+          "old_level": "string",
+          "new_level": "string",
+          "timestamp": "ISO8601 string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/control-kernel/autonomy-level -H 'Content-Type: application/json' -d '{\"level\": \"A3\"}'"
+      },
+      "POST /control-kernel/validate": {
+        "description": "Validate operation against safety policies",
+        "parameters": {
+          "type": "string (required) - Operation type",
+          "scope": "string - local or global",
+          "description": "string - Operation description"
+        },
+        "request_body": {
+          "type": "code_modification",
+          "scope": "local",
+          "description": "Refactor authentication module"
+        },
+        "response": {
+          "valid": "boolean",
+          "operation_id": "uuid",
+          "requires_approval": "boolean",
+          "requires_simulation": "boolean",
+          "estimated_risk": "string (low|medium|high)"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/control-kernel/validate -H 'Content-Type: application/json' -d '{\"type\": \"code_modification\", \"scope\": \"local\"}'"
+      },
+      "GET /control-kernel/execution-log": {
+        "description": "Get execution log",
+        "parameters": {
+          "limit": "number (optional) - Number of entries to return (default: 50)"
+        },
+        "response": {
+          "log": "array of log entries",
+          "total": "number"
+        },
+        "example_curl": "curl -X GET 'https://your-domain.com/api/control-kernel/execution-log?limit=20'"
+      }
+    },
+    "cognitive_engine": {
+      "GET /cognitive-engine/status": {
+        "description": "Get Cognitive Engine status and performance metrics",
+        "parameters": {},
+        "response": {
+          "version": "string",
+          "status": "string",
+          "performance_metrics": {
+            "avg_response_time_ms": "number",
+            "total_queries": "number",
+            "successful_queries": "number"
+          },
+          "meets_sla": "boolean"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/cognitive-engine/status"
+      },
+      "POST /cognitive-engine/reason": {
+        "description": "Perform fast reasoning (<2s)",
+        "parameters": {
+          "id": "string (optional) - Query ID",
+          "type": "string (required) - Query type",
+          "data": "object - Query data"
+        },
+        "request_body": {
+          "type": "project_analysis",
+          "data": {
+            "project_id": "abc123"
+          }
+        },
+        "response": {
+          "success": "boolean",
+          "query_id": "uuid",
+          "result": "object",
+          "elapsed_ms": "number",
+          "timestamp": "ISO8601 string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/cognitive-engine/reason -H 'Content-Type: application/json' -d '{\"type\": \"project_analysis\", \"data\": {}}'"
+      },
+      "POST /cognitive-engine/self-improve": {
+        "description": "Trigger self-improvement",
+        "parameters": {
+          "type": "string - Improvement type",
+          "feedback": "object - Feedback data"
+        },
+        "request_body": {
+          "type": "performance",
+          "feedback": {
+            "metric": "response_time",
+            "suggestion": "cache_optimization"
+          }
+        },
+        "response": {
+          "success": "boolean",
+          "improvement_type": "string",
+          "status": "string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/cognitive-engine/self-improve -H 'Content-Type: application/json' -d '{\"type\": \"performance\"}'"
+      },
+      "GET /cognitive-engine/metrics": {
+        "description": "Get performance metrics",
+        "parameters": {},
+        "response": {
+          "avg_response_time_ms": "number",
+          "total_queries": "number",
+          "successful_queries": "number"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/cognitive-engine/metrics"
+      }
+    },
+    "state_graph": {
+      "POST /state-graph/query": {
+        "description": "Query state graph",
+        "parameters": {
+          "type": "string (required) - Query type: full, node, neighbors, path",
+          "node_id": "string (optional) - Node ID for node/neighbors queries",
+          "source": "string (optional) - Source node for path query",
+          "target": "string (optional) - Target node for path query"
+        },
+        "request_body": {
+          "type": "neighbors",
+          "node_id": "control_kernel"
+        },
+        "response": {
+          "success": "boolean",
+          "result": "object or array",
+          "elapsed_ms": "number"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/state-graph/query -H 'Content-Type: application/json' -d '{\"type\": \"full\"}'"
+      },
+      "GET /state-graph/full": {
+        "description": "Get full graph for visualization",
+        "parameters": {},
+        "response": {
+          "nodes": "array of nodes",
+          "links": "array of links",
+          "metadata": "object",
+          "stats": "object"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/state-graph/full"
+      },
+      "GET /state-graph/stats": {
+        "description": "Get graph statistics",
+        "parameters": {},
+        "response": {
+          "node_count": "number",
+          "edge_count": "number",
+          "density": "number",
+          "is_connected": "boolean"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/state-graph/stats"
+      },
+      "GET /state-graph/node/{node_id}": {
+        "description": "Get specific node data",
+        "parameters": {
+          "node_id": "string (required) - Node identifier"
+        },
+        "response": {
+          "id": "string",
+          "type": "string",
+          "label": "string",
+          "status": "string"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/state-graph/node/control_kernel"
+      }
+    },
+    "shadow_world": {
+      "GET /shadow-world/status": {
+        "description": "Get Shadow World status",
+        "parameters": {},
+        "response": {
+          "status": "string",
+          "total_simulations": "number",
+          "active_simulations": "number"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/shadow-world/status"
+      },
+      "POST /shadow-world/simulation": {
+        "description": "Create new simulation",
+        "parameters": {
+          "operation": "object (required) - Operation to simulate"
+        },
+        "request_body": {
+          "operation": {
+            "type": "refactor",
+            "scope": "local",
+            "files": ["auth.py"],
+            "changes": []
+          }
+        },
+        "response": {
+          "success": "boolean",
+          "simulation_id": "uuid",
+          "status": "string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/shadow-world/simulation -H 'Content-Type: application/json' -d '{\"operation\": {\"type\": \"refactor\"}}'"
+      },
+      "POST /shadow-world/simulation/{id}/run": {
+        "description": "Run simulation",
+        "parameters": {
+          "id": "string (required) - Simulation ID"
+        },
+        "response": {
+          "success": "boolean",
+          "simulation_id": "uuid",
+          "result": "object"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/shadow-world/simulation/{id}/run"
+      },
+      "GET /shadow-world/simulation/{id}": {
+        "description": "Get simulation details",
+        "parameters": {
+          "id": "string (required) - Simulation ID"
+        },
+        "response": {
+          "id": "uuid",
+          "operation": "object",
+          "status": "string",
+          "result": "object",
+          "risk_assessment": "object"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/shadow-world/simulation/{id}"
+      },
+      "GET /shadow-world/simulations": {
+        "description": "List all simulations",
+        "parameters": {},
+        "response": {
+          "simulations": "array of simulations"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/shadow-world/simulations"
+      }
+    },
+    "rollback": {
+      "GET /rollback/status": {
+        "description": "Get Rollback Manager status",
+        "parameters": {},
+        "response": {
+          "status": "string",
+          "total_snapshots": "number",
+          "current_snapshot_id": "uuid"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/rollback/status"
+      },
+      "POST /rollback/snapshot": {
+        "description": "Create snapshot",
+        "parameters": {
+          "description": "string - Snapshot description",
+          "tags": "array - Tags for organization"
+        },
+        "request_body": {
+          "description": "Before major refactor",
+          "tags": ["pre-refactor", "stable"]
+        },
+        "response": {
+          "success": "boolean",
+          "snapshot_id": "uuid",
+          "created_at": "ISO8601 string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/rollback/snapshot -H 'Content-Type: application/json' -d '{\"description\": \"Manual snapshot\", \"tags\": [\"stable\"]}'"
+      },
+      "GET /rollback/snapshots": {
+        "description": "List all snapshots",
+        "parameters": {},
+        "response": {
+          "snapshots": "array of snapshots"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/rollback/snapshots"
+      },
+      "GET /rollback/snapshot/{id}": {
+        "description": "Get snapshot details",
+        "parameters": {
+          "id": "string (required) - Snapshot ID"
+        },
+        "response": {
+          "id": "uuid",
+          "created_at": "ISO8601 string",
+          "type": "string",
+          "description": "string",
+          "state": "object",
+          "tags": "array"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/rollback/snapshot/{id}"
+      },
+      "POST /rollback/snapshot/{id}/restore": {
+        "description": "Rollback to snapshot",
+        "parameters": {
+          "id": "string (required) - Snapshot ID"
+        },
+        "response": {
+          "success": "boolean",
+          "snapshot_id": "uuid",
+          "rollback_time": "ISO8601 string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/rollback/snapshot/{id}/restore"
+      },
+      "DELETE /rollback/snapshot/{id}": {
+        "description": "Delete snapshot",
+        "parameters": {
+          "id": "string (required) - Snapshot ID"
+        },
+        "response": {
+          "success": "boolean",
+          "snapshot_id": "uuid"
+        },
+        "example_curl": "curl -X DELETE https://your-domain.com/api/rollback/snapshot/{id}"
+      }
+    },
+    "projects": {
+      "GET /projects": {
+        "description": "List all projects",
+        "parameters": {
+          "status": "string (optional) - Filter by status (active|inactive)"
+        },
+        "response": {
+          "projects": "array of projects"
+        },
+        "example_curl": "curl -X GET 'https://your-domain.com/api/projects?status=active'"
+      },
+      "POST /projects": {
+        "description": "Register new project",
+        "parameters": {
+          "name": "string (required)",
+          "type": "string (required)",
+          "language": "string (required)",
+          "status": "string - active or inactive",
+          "complexity": "string - low, medium, or high"
+        },
+        "request_body": {
+          "name": "Project Delta",
+          "type": "web_application",
+          "language": "python",
+          "status": "active",
+          "complexity": "medium"
+        },
+        "response": {
+          "success": "boolean",
+          "project_id": "uuid",
+          "name": "string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/projects -H 'Content-Type: application/json' -d '{\"name\": \"New Project\", \"type\": \"api\", \"language\": \"python\"}'"
+      },
+      "GET /projects/stats": {
+        "description": "Get project statistics",
+        "parameters": {},
+        "response": {
+          "total_projects": "number",
+          "active_projects": "number",
+          "by_type": "object",
+          "by_language": "object",
+          "by_complexity": "object"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/projects/stats"
+      },
+      "GET /projects/{id}": {
+        "description": "Get project details",
+        "parameters": {
+          "id": "string (required) - Project ID"
+        },
+        "response": {
+          "id": "uuid",
+          "name": "string",
+          "type": "string",
+          "language": "string",
+          "status": "string",
+          "complexity": "string",
+          "registered_at": "ISO8601 string"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/projects/{id}"
+      },
+      "PUT /projects/{id}": {
+        "description": "Update project",
+        "parameters": {
+          "id": "string (required) - Project ID"
+        },
+        "request_body": {
+          "status": "inactive",
+          "complexity": "high"
+        },
+        "response": {
+          "success": "boolean",
+          "project_id": "uuid"
+        },
+        "example_curl": "curl -X PUT https://your-domain.com/api/projects/{id} -H 'Content-Type: application/json' -d '{\"status\": \"inactive\"}'"
+      },
+      "POST /projects/{id}/toggle": {
+        "description": "Enable/disable project module",
+        "parameters": {
+          "id": "string (required) - Project ID"
+        },
+        "response": {
+          "success": "boolean",
+          "project_id": "uuid",
+          "old_status": "string",
+          "new_status": "string",
+          "message": "string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/projects/{id}/toggle"
+      },
+      "GET /projects/{id}/dependencies": {
+        "description": "Get project dependencies",
+        "parameters": {
+          "id": "string (required) - Project ID"
+        },
+        "response": {
+          "project_id": "uuid",
+          "dependencies": "array of dependency objects",
+          "dependent_projects": "array"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/projects/{id}/dependencies"
+      }
+    },
+    "voice": {
+      "POST /voice/transcribe": {
+        "description": "Transcribe audio to text using Whisper STT",
+        "parameters": {
+          "audio_base64": "string (required) - Base64-encoded audio",
+          "language": "string (optional) - Language code (default: en)"
+        },
+        "request_body": {
+          "audio_base64": "BASE64_ENCODED_AUDIO_DATA",
+          "language": "en"
+        },
+        "response": {
+          "success": "boolean",
+          "text": "string",
+          "language": "string",
+          "confidence": "number",
+          "segments": "array",
+          "duration": "number"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/voice/transcribe -H 'Content-Type: application/json' -d '{\"audio_base64\": \"...\", \"language\": \"en\"}'"
+      },
+      "POST /voice/synthesize": {
+        "description": "Synthesize text to speech using Piper TTS",
+        "parameters": {
+          "text": "string (required) - Text to synthesize",
+          "voice": "string (optional) - Voice model to use"
+        },
+        "request_body": {
+          "text": "Hello, this is a test",
+          "voice": "en_US-lessac-medium"
+        },
+        "response": {
+          "success": "boolean",
+          "audio_path": "string",
+          "voice": "string",
+          "text_length": "number",
+          "duration_estimate": "number"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/voice/synthesize -H 'Content-Type: application/json' -d '{\"text\": \"Hello world\"}'"
+      },
+      "GET /voice/status": {
+        "description": "Get voice integration status",
+        "parameters": {},
+        "response": {
+          "stt": {
+            "status": "string",
+            "model": "string",
+            "ready": "boolean"
+          },
+          "tts": {
+            "status": "string",
+            "default_voice": "string",
+            "ready": "boolean"
+          }
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/voice/status"
+      },
+      "GET /voice/voices": {
+        "description": "List available TTS voices",
+        "parameters": {},
+        "response": {
+          "voices": "array of voice names"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/voice/voices"
+      },
+      "POST /voice/command": {
+        "description": "Process voice command - transcribe and execute",
+        "parameters": {
+          "audio_base64": "string (required) - Base64-encoded audio",
+          "language": "string (optional) - Language code"
+        },
+        "request_body": {
+          "audio_base64": "BASE64_ENCODED_AUDIO_DATA",
+          "language": "en"
+        },
+        "response": {
+          "success": "boolean",
+          "transcription": "object",
+          "command": "string",
+          "response": "string",
+          "audio": "object"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/voice/command -H 'Content-Type: application/json' -d '{\"audio_base64\": \"...\"}'"
+      }
+    },
+    "safety": {
+      "GET /safety/metrics": {
+        "description": "Get current system safety metrics",
+        "parameters": {},
+        "response": {
+          "cpu_usage_percent": "number",
+          "memory_usage_gb": "number",
+          "memory_limit_gb": "number",
+          "response_time_ms": "number",
+          "response_time_sla": "number",
+          "task_failure_rate": "number",
+          "meets_sla": "boolean",
+          "safety_status": "string"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/safety/metrics"
+      },
+      "POST /safety/check-thresholds": {
+        "description": "Check if safety thresholds are breached",
+        "parameters": {},
+        "response": {
+          "safe": "boolean",
+          "breaches": "array of breach objects",
+          "recommend_rollback": "boolean",
+          "timestamp": "ISO8601 string"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/safety/check-thresholds"
+      },
+      "POST /safety/auto-rollback": {
+        "description": "Trigger automatic rollback due to safety breach",
+        "parameters": {},
+        "response": {
+          "success": "boolean",
+          "snapshot_id": "uuid",
+          "reason": "string",
+          "breaches": "array"
+        },
+        "example_curl": "curl -X POST https://your-domain.com/api/safety/auto-rollback"
+      }
+    },
+    "documentation": {
+      "GET /documentation/architecture": {
+        "description": "Get architecture documentation",
+        "parameters": {},
+        "response": {
+          "title": "string",
+          "version": "string",
+          "overview": "object",
+          "components": "object",
+          "api_endpoints": "object"
+        },
+        "example_curl": "curl -X GET https://your-domain.com/api/documentation/architecture"
+      },
+      "GET /documentation/download": {
+        "description": "Download complete architecture documentation as JSON",
+        "parameters": {},
+        "response": "File download (application/json)",
+        "example_curl": "curl -X GET https://your-domain.com/api/documentation/download -o accf_architecture.json"
+      }
+    },
+    "websocket": {
+      "WS /ws/system-state": {
+        "protocol": "WebSocket",
+        "description": "Real-time system state updates",
+        "connection_url": "wss://your-domain.com/ws/system-state",
+        "messages": {
+          "initial_state": {
+            "type": "initial_state",
+            "data": {
+              "control_kernel": "object",
+              "cognitive_engine": "object",
+              "graph": "object"
+            }
+          },
+          "status_update": {
+            "type": "status_update",
+            "timestamp": "ISO8601 string",
+            "data": {
+              "control_kernel": "object",
+              "cognitive_engine": "object",
+              "shadow_world": "object",
+              "rollback": "object"
+            }
+          }
+        },
+        "example_js": "const ws = new WebSocket('wss://your-domain.com/ws/system-state'); ws.onmessage = (event) => { console.log(JSON.parse(event.data)); };"
+      }
+    }
+  },
+  "error_responses": {
+    "400": {
+      "description": "Bad Request - Invalid parameters",
+      "example": {
+        "detail": "Invalid autonomy level: A5"
+      }
+    },
+    "404": {
+      "description": "Not Found - Resource doesn't exist",
+      "example": {
+        "detail": "Project not found"
+      }
+    },
+    "500": {
+      "description": "Internal Server Error",
+      "example": {
+        "detail": "Database connection failed"
+      }
+    }
+  },
+  "rate_limits": {
+    "note": "No rate limiting in reference implementation. Add rate limiting in production."
+  },
+  "best_practices": [
+    "Always check safety thresholds before critical operations",
+    "Create snapshots before major system changes",
+    "Use shadow simulations for high-risk operations",
+    "Monitor WebSocket for real-time updates",
+    "Set appropriate autonomy levels based on environment",
+    "Regularly check system metrics to ensure SLA compliance"
+  ]
+}
