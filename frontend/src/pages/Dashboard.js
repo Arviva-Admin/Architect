@@ -98,10 +98,15 @@ const Dashboard = () => {
             <ProjectRegistry />
           </div>
 
-          {/* Quick Actions */}
-          <div data-testid="quick-actions-section">
-            <QuickActions />
+          {/* Voice Interface */}
+          <div data-testid="voice-interface-section">
+            <VoiceInterface />
           </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-6" data-testid="quick-actions-section">
+          <QuickActions />
         </div>
 
         {/* System Health Cards */}
