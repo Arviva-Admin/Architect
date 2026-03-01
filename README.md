@@ -8,6 +8,11 @@ Detta repo kör **Nexus** med ACCF som en integrerad modul i befintlig FastAPI-b
 - Frontend: `frontend/` (React/Vite) med ny route `/accf`
 - Hub finns kvar i dev-compose (`hub-dev`) men ACCF är inte hub-centrerad.
 
+## Frontend/backend anslutning
+- Backend har CORS aktiverat för lokal UI-integration.
+- Frontend använder `VITE_API_BASE_URL` och `VITE_WS_BASE_URL` om de finns.
+- Om env saknas används samma host som frontend med backend-port `8001`.
+
 ## ACCF endpoints
 - `GET /api/accf/health`
 - `POST /api/accf/tasks`

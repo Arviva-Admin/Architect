@@ -1,8 +1,17 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.modules.accf.api import router as accf_router, ws_router as accf_ws_router
 
 app = FastAPI(title="arviva-nexus-backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Keep existing health contract unchanged
 @app.get("/health")

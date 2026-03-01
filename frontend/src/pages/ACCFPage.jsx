@@ -4,6 +4,19 @@ import { ExecutionGraphViewer } from '../components/ExecutionGraphViewer';
 
 const levels = ['A0', 'A1', 'A2', 'A3', 'A4'];
 
+function resolveWsBaseUrl() {
+  if (import.meta.env.VITE_WS_BASE_URL) {
+    return import.meta.env.VITE_WS_BASE_URL;
+  }
+
+  if (typeof window === 'undefined') {
+    return 'ws://127.0.0.1:8001';
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.hostname}:8001`;
+}
+
 export function ACCFPage() {
   const [toast, setToast] = useState('');
   const [autonomy, setAutonomy] = useState('A1');
@@ -20,30 +33,38 @@ export function ACCFPage() {
     getACCFHealth().then(setHealth).catch(() => setToast('Could not load ACCF health'));
     getProjects().then(setProjects).catch(() => setToast('Could not load projects'));
 
-    const ws = new WebSocket((import.meta.env.VITE_WS_BASE_URL || 'ws://127.0.0.1:8001') + '/ws/accf');
+    const ws = new WebSocket(`${resolveWsBaseUrl()}/ws/accf`);
     ws.onmessage = (evt) => setLogs((prev) => [evt.data, ...prev].slice(0, 30));
     ws.onerror = () => setToast('WS disconnected');
     return () => ws.close();
   }, []);
 
   async function onSeedProject() {
-    const p = await createProject({ name: 'Nexus', tags: ['core'], memory_budget_gb: 8 });
-    setProjects((prev) => [p, ...prev]);
-    setToast('Project added');
+    try {
+      const p = await createProject({ name: 'Nexus', tags: ['core'], memory_budget_gb: 8 });
+      setProjects((prev) => [p, ...prev]);
+      setToast('Project added');
+    } catch {
+      setToast('Could not create project');
+    }
   }
 
   async function onSimulateTask() {
     if (!projects[0]) return setToast('Create a project first');
-    const task = await createTask({
-      project_id: projects[0].id,
-      description: 'UI simulated run',
-      risk: 'low',
-      estimated_memory_gb: 2,
-      simulated: true,
-      graph: sampleGraph
-    });
-    setLogs((prev) => [JSON.stringify(task), ...prev]);
-    setToast('Task executed (simulated=true)');
+    try {
+      const task = await createTask({
+        project_id: projects[0].id,
+        description: 'UI simulated run',
+        risk: 'low',
+        estimated_memory_gb: 2,
+        simulated: true,
+        graph: sampleGraph
+      });
+      setLogs((prev) => [JSON.stringify(task), ...prev]);
+      setToast('Task executed (simulated=true)');
+    } catch {
+      setToast('Could not run task');
+    }
   }
 
   return (

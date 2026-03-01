@@ -1,4 +1,17 @@
-const API = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8001';
+const defaultApiBaseUrl = (() => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+
+  if (typeof window === 'undefined') {
+    return 'http://127.0.0.1:8001';
+  }
+
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:8001`;
+})();
+
+const API = defaultApiBaseUrl;
 
 export async function getACCFHealth() {
   const r = await fetch(`${API}/api/accf/health`);
