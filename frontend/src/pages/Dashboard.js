@@ -138,6 +138,9 @@ const Dashboard = () => {
           </div>
         </div>
       </footer>
+
+      {/* Notification Area */}
+      <NotificationArea />
     </div>
   );
 };
